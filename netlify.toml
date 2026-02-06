@@ -1,0 +1,6 @@
+# netlify.toml
+
+[build]
+  command = ""                  # ← empty if no frontend build step
+  publish = "."                 # ← current folder (for single-file HTML)
+  functions = "netlify/functions"   # ← where functions are stored

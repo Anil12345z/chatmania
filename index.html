@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Chat • Modern & Beautiful</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  
+  <style>
+    :root {
+      --primary: #7c3aed;
+      --primary-dark: #5b21b6;
+      --bg: #0f0f17;
+      --card: #1a1a2e;
+      --text: #e2e8f0;
+      --text-light: #94a3b8;
+      --border: #334155;
+      --error: #f87171;
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      background-image: 
+        radial-gradient(circle at 15% 25%, rgba(124,58,237,0.07) 0%, transparent 25%),
+        radial-gradient(circle at 85% 75%, rgba(168,85,247,0.06) 0%, transparent 30%);
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: 1fr minmax(420px, 780px) 1fr;
+      gap: 2rem;
+      padding: 1.5rem;
+      max-width: 1700px;
+      margin: 0 auto;
+    }
+
+    header {
+      grid-column: 2;
+      text-align: center;
+      padding: 2.2rem 0 1.2rem;
+    }
+
+    h1 {
+      font-size: 2.6rem;
+      background: linear-gradient(90deg, #a78bfa, #c084fc, #f472b6);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.4rem;
+    }
+
+    .subtitle { color: var(--text-light); font-size: 1.1rem; }
+
+    .chat-container {
+      grid-column: 2;
+      background: var(--card);
+      border-radius: 1.3rem;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: 0 12px 48px rgba(0,0,0,0.45);
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 150px);
+      max-height: 960px;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 1.8rem 2rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .message {
+      max-width: 84%;
+      padding: 1rem 1.4rem;
+      border-radius: 1.15rem;
+      line-height: 1.58;
+      position: relative;
+    }
+
+    .user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, #7c3aed, #a855f7);
+      color: white;
+      border-bottom-right-radius: 5px;
+    }
+
+    .assistant {
+      align-self: flex-start;
+      background: #1e293b;
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 5px;
+    }
+
+    .message pre {
+      background: #0d1117;
+      padding: 1.1rem;
+      border-radius: 0.75rem;
+      overflow-x: auto;
+      margin: 1rem 0;
+      font-size: 0.95rem;
+    }
+
+    .message code { font-family: 'SF Mono', Consolas, monospace; }
+
+    .message table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.1rem 0;
+      font-size: 0.97rem;
+    }
+
+    .message th, .message td {
+      border: 1px solid #334155;
+      padding: 0.9rem 1.1rem;
+      text-align: left;
+    }
+
+    .message th {
+      background: #1e293b;
+      color: #c084fc;
+    }
+
+    .input-area {
+      padding: 1.3rem 2rem;
+      background: #141826;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 1rem;
+    }
+
+    textarea {
+      flex: 1;
+      background: #1e293b;
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.1rem 1.4rem;
+      color: white;
+      font-size: 1.05rem;
+      resize: none;
+      height: 74px;
+      transition: all 0.2s;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.22);
+    }
+
+    button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 1rem;
+      padding: 0 1.9rem;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.22s;
+    }
+
+    button:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    button:active  { transform: translateY(0); }
+
+    .loading {
+      align-self: flex-start;
+      background: #1e293b;
+      padding: 1rem 1.4rem;
+      border-radius: 1.15rem;
+      border-bottom-left-radius: 5px;
+      display: flex;
+      gap: 0.6rem;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      background: #94a3b8;
+      border-radius: 50%;
+      animation: bounce 1.4s infinite;
+    }
+
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-7px); }
+    }
+
+    .error-msg { color: var(--error); font-weight: 500; }
+
+    .chat-messages::-webkit-scrollbar { width: 9px; }
+    .chat-messages::-webkit-scrollbar-track { background: #0f0f17; }
+    .chat-messages::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+
+    @media (max-width: 780px) {
+      .container { grid-template-columns: 1fr; padding: 1rem; }
+      .chat-container { height: calc(100vh - 120px); }
+      h1 { font-size: 2.1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>AI Chat • Direct to Claude</h1>
+    <div class="subtitle">Modern UI • Tables • Code • No backend needed</div>
+  </header>
+
+  <div class="chat-container">
+    <div class="chat-messages" id="chatMessages"></div>
+
+    <div class="input-area">
+      <textarea id="userInput" placeholder="Ask anything..." rows="3"></textarea>
+      <button id="sendBtn"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  // ────────────────────────────────────────────────
+  //  IMPORTANT: Replace with YOUR real Anthropic API key
+  //  WARNING: This key will be visible in browser network tab!
+  //  Use only for personal / demo / localhost projects
+  // ────────────────────────────────────────────────
+  const ANTHROPIC_API_KEY = "sk-ant-api03-.........................."; // ← YOUR KEY HERE
+
+  // ────────────────────────────────────────────────
+  //  DOM
+  // ────────────────────────────────────────────────
+  const messagesDiv   = document.getElementById("chatMessages");
+  const userInput     = document.getElementById("userInput");
+  const sendBtn       = document.getElementById("sendBtn");
+
+  // ────────────────────────────────────────────────
+  //  Helpers
+  // ────────────────────────────────────────────────
+  function addMessage(role, content) {
+    const msg = document.createElement("div");
+    msg.className = `message ${role}`;
+    msg.innerHTML = content;
+    messagesDiv.appendChild(msg);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }
+
+  function showLoading() {
+    const loading = document.createElement("div");
+    loading.className = "loading";
+    loading.innerHTML = `<div class="dot"></div><div class="dot"></div><div class="dot"></div>`;
+    loading.id = "loading";
+    messagesDiv.appendChild(loading);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    return loading;
+  }
+
+  function removeLoading() {
+    document.getElementById("loading")?.remove();
+  }
+
+  // ────────────────────────────────────────────────
+  //  Convert markdown → HTML (basic but good enough)
+  // ────────────────────────────────────────────────
+  function convertMarkdownToHtml(md) {
+    return md
+      .replace(/^### (.*)$/gm,     '<h3>$1</h3>')
+      .replace(/^## (.*)$/gm,      '<h2>$1</h2>')
+      .replace(/^# (.*)$/gm,       '<h1>$1</h1>')
+      .replace(/\*\*(.*?)\*\*/g,   '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g,       '<em>$1</em>')
+      .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+      .replace(/`([^`]+)`/g,       '<code>$1</code>')
+      .replace(/^\s*[-*+]\s+/gm,   '• ')
+      .replace(/\n/g,              '<br>');
+  }
+
+  // ────────────────────────────────────────────────
+  //  Smart API guide visualizer (when response looks like a cheat-sheet)
+  // ────────────────────────────────────────────────
+  function createApiCheatSheetHtml(rawText) {
+    let html = `
+      <div style="background:#1e293b; padding:1.6rem; border-radius:1rem; border:1px solid #334155;">
+        <h2 style="color:#c084fc; margin-bottom:1.3rem;">
+          <i class="fas fa-plug" style="margin-right:0.7rem;"></i>
+          API Samajh lo – Simple & Visual Guide
+        </h2>
+    `;
+
+    const sections = rawText.split(/---\s*\n/);
+
+    sections.forEach(section => {
+      section = section.trim();
+      if (!section) return;
+
+      const lines = section.split('\n');
+      let title = lines[0].replace(/^#+ /, '').trim() || 'Section';
+      let content = lines.slice(1).join('\n');
+
+      if (content.includes('|')) {
+        let tableHtml = content
+          .replace(/^\|(.+)\|$/gm, (match, row) => {
+            const cells = row.split('|').map(c => c.trim()).filter(Boolean);
+            if (cells.every(c => c.match(/^-+$/))) return ''; // separator
+            const tag = row.includes('|---') ? 'th' : 'td';
+            return `<tr>${cells.map(c => `<${tag}>${c}</${tag}>`).join('')}</tr>`;
+          });
+
+        html += `
+          <div style="margin:1.6rem 0;">
+            <h3 style="color:#a78bfa; margin-bottom:0.9rem;">${title}</h3>
+            <table style="width:100%; border-collapse:collapse; font-size:0.96rem;">
+              ${tableHtml}
+            </table>
+          </div>
+        `;
+      } else {
+        html += `<p style="margin:1.2rem 0; line-height:1.6;">${content.replace(/\n/g, '<br>')}</p>`;
+      }
+    });
+
+    html += `
+        <div style="margin-top:1.8rem; font-size:0.9rem; color:#94a3b8; text-align:center;">
+          Yeh guide beginners ke liye banayi gayi hai ❤️
+        </div>
+      </div>
+    `;
+
+    return html;
+  }
+
+  // ────────────────────────────────────────────────
+  //  Call Claude directly from browser (2025 style)
+  // ────────────────────────────────────────────────
+  async function callClaude(prompt) {
+    try {
+        
+       const response = await fetch("/.netlify/functions/claude", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "claude-sonnet-4-5-20250929",
+            max_tokens: 1200,
+            messages: [{ role: "user", content: prompt }]
+          })
+        });
+
+        if (!response.ok) {
+          const err = await response.json();
+          throw new Error(err.error?.message || `HTTP ${response.status}`);
+        }
+
+        const json = await response.json();
+        return json.content?.[0]?.text || "No content received.";
+
+    } catch (err) {
+      return `**Error**\n${err.message}\n\n(API key exposed in browser — use only for personal testing!)`;
+    }
+  }
+
+  // ────────────────────────────────────────────────
+  //  Main send logic with smart rendering
+  // ────────────────────────────────────────────────
+  async function sendMessage() {
+    const text = userInput.value.trim();
+    if (!text) return;
+
+    addMessage("user", text.replace(/\n/g, "<br>"));
+    userInput.value = "";
+
+    const loading = showLoading();
+
+    const responseText = await callClaude(text);
+    removeLoading();
+
+    const isApiCheatSheet = 
+      responseText.includes('|') &&
+      (responseText.includes('HTTP Methods') || 
+       responseText.includes('Status Codes') ||
+       responseText.includes('Authentication') ||
+       responseText.includes('Query Parameters') ||
+       (responseText.match(/---\s*\n/g)?.length || 0) >= 3);
+
+    let finalHtml = isApiCheatSheet 
+      ? createApiCheatSheetHtml(responseText)
+      : convertMarkdownToHtml(responseText);
+
+    if (responseText.includes("**Error**")) {
+      finalHtml = `<div class="error-msg">${finalHtml}</div>`;
+    }
+
+    addMessage("assistant", finalHtml);
+  }
+
+  // ────────────────────────────────────────────────
+  //  Events
+  // ────────────────────────────────────────────────
+  sendBtn.addEventListener("click", sendMessage);
+
+  userInput.addEventListener("keydown", e => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  // Welcome message
+  addMessage("assistant", `
+<h2>Welcome to AI Chat</h2>
+<p>Ask anything — code, APIs, career advice, stories, or just random baatein.</p>
+<p>Try these:</p>
+<ul>
+  <li>Best way to learn JavaScript in 2026?</li>
+  <li>Explain APIs like I'm 12 years old</li>
+  <li>Write a funny story about a programmer and a cat</li>
+</ul>
+  `);
+</script>
+</body>
+</html>
