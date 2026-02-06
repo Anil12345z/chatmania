@@ -1,9 +1,5 @@
-// netlify/functions/claude.ts
-
-import type { Context } from "@netlify/functions";
-
-export default async (req: Request, context: Context) => {
-  // Only allow POST
+// netlify/functions/claude.js
+export default async (req) => {
   if (req.method !== "POST") {
     return new Response("Method Not Allowed", { status: 405 });
   }
@@ -11,26 +7,25 @@ export default async (req: Request, context: Context) => {
   try {
     const body = await req.json();
 
-    // Forward to Anthropic
-    const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": Netlify.env.get("ANTHROPIC_API_KEY")!,           // ← secret from env
-        "anthropic-version": "2023-06-01",
+        "x-api-key": process.env.ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01"
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(body)
     });
 
-    const data = await anthropicResponse.json();
+    const data = await res.json();
 
     return new Response(JSON.stringify(data), {
-      status: anthropicResponse.status,
-      headers: { "Content-Type": "application/json" },
+      status: res.status,
+      headers: { "Content-Type": "application/json" }
     });
-  } catch (err: any) {
+  } catch (err) {
     return new Response(
-      JSON.stringify({ error: err.message || "Internal Server Error" }),
+      JSON.stringify({ error: err.message || "Function error" }),
       { status: 500 }
     );
   }
